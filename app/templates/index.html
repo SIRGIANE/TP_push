@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - Système de Prédiction de Cancer{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>🏠 Bienvenue dans le Système de Prédiction de Cancer</h2>
+    <p style="font-size: 1.1em; line-height: 1.6; color: #6c757d; margin-bottom: 30px;">
+        Cette application démontre le concept de <strong>polymorphisme</strong> en POO en permettant 
+        l'utilisation interchangeable de différents modèles d'IA pour la prédiction du cancer du sein.
+    </p>
+    
+    <div class="model-info">
+        <h3 style="color: #667eea; margin-bottom: 15px;">📚 Modèles Disponibles</h3>
+        {% for key, model in models.items() %}
+        <div style="margin-bottom: 15px; padding: 15px; background: white; border-radius: 8px; border-left: 4px solid #667eea;">
+            <h4 style="color: #495057; margin-bottom: 5px;">{{ model.name }}</h4>
+            <p style="color: #6c757d; margin: 5px 0;">{{ model.description }}</p>
+            <small style="color: #adb5bd;">Paramètres: {{ model.default_params }}</small>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <h3 style="color: #667eea; margin-bottom: 15px;">🚀 Fonctionnalités</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                <h4 style="color: #495057; margin-bottom: 10px;">🚀 Entraînement</h4>
+                <p style="color: #6c757d; font-size: 0.95em;">Sélectionnez et entraînez un modèle avec des paramètres personnalisés</p>
+                <a href="/train_model" class="btn" style="margin-top: 15px;">Commencer</a>
+            </div>
+            
+            <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                <h4 style="color: #495057; margin-bottom: 10px;">🔮 Prédiction</h4>
+                <p style="color: #6c757d; font-size: 0.95em;">Faites des prédictions avec votre modèle entraîné</p>
+                <a href="/predict" class="btn" style="margin-top: 15px;">Prédire</a>
+            </div>
+            
+            <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                <h4 style="color: #495057; margin-bottom: 10px;">📊 Évaluation</h4>
+                <p style="color: #6c757d; font-size: 0.95em;">Évaluez les performances de votre modèle</p>
+                <a href="/evaluate" class="btn" style="margin-top: 15px;">Évaluer</a>
+            </div>
+            
+            <div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                <h4 style="color: #495057; margin-bottom: 10px;">⚖️ Comparaison</h4>
+                <p style="color: #6c757d; font-size: 0.95em;">Comparez les performances de tous les modèles</p>
+                <a href="/compare_models" class="btn" style="margin-top: 15px;">Comparer</a>
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px;">
+        <h3 style="color: white; margin-bottom: 15px;">🎯 Concept POO: Polymorphisme</h3>
+        <p style="font-size: 1.05em; line-height: 1.6;">
+            Tous les modèles implémentent une méthode <code style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 4px;">predict()</code> commune. 
+            Cela permet de les utiliser de manière interchangeable grâce au <strong>polymorphisme</strong> - 
+            un concept clé de la Programmation Orientée Objet!
+        </p>
+    </div>
+</div>
+{% endblock %}

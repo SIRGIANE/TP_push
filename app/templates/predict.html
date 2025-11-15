@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Prédiction{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>🔮 Faire une Prédiction</h2>
+    
+    {% if not model_loaded %}
+    <div class="alert alert-error">
+        <strong>⚠️ Aucun modèle chargé!</strong>
+        <p>Veuillez d'abord <a href="/train_model" style="color: #721c24; text-decoration: underline;">entraîner un modèle</a>.</p>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <strong>✓ Modèle actuel:</strong> {{ model_name }}
+    </div>
+    
+    <form id="predictForm">
+        <div class="form-group">
+            <label>Source des Données</label>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="radio" name="data_source" value="random" checked style="width: auto; margin-right: 8px;">
+                    🎲 Données Aléatoires
+                </label>
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="radio" name="data_source" value="test_sample" style="width: auto; margin-right: 8px;">
+                    🧪 Échantillon de Test
+                </label>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn">🔮 Prédire</button>
+    </form>
+    
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px; color: #667eea; font-weight: 500;">Prédiction en cours...</p>
+    </div>
+    
+    <div id="result" style="display: none;"></div>
+    <div id="error" style="display: none;" class="alert alert-error"></div>
+    {% endif %}
+</div>
+
+<script>
+    const predictForm = document.getElementById('predictForm');
+    const loading = document.getElementById('loading');
+    const result = document.getElementById('result');
+    const error = document.getElementById('error');
+    
+    if (predictForm) {
+        predictForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            loading.classList.add('show');
+            result.style.display = 'none';
+            error.style.display = 'none';
+            
+            const formData = new FormData(predictForm);
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                // Afficher le résultat
+                const isMalignant = data.prediction_value === 1;
+                const resultClass = isMalignant ? 'malignant' : 'benign';
+                
+                let html = `
+                    <div class="prediction-result ${resultClass}">
+                        <h2>${data.prediction}</h2>
+                        <p style="font-size: 1.2em; margin: 10px 0;">
+                            ${isMalignant ? '⚠️ Tumeur Maligne Détectée' : '✓ Tumeur Bénigne'}
+                        </p>
+                        
+                        <div style="margin: 30px 0;">
+                            <div style="margin-bottom: 15px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>Probabilité Bénigne</span>
+                                    <span><strong>${(data.prob_benign * 100).toFixed(2)}%</strong></span>
+                                </div>
+                                <div class="probability-bar">
+                                    <div class="probability-fill" style="width: ${data.prob_benign * 100}%;">
+                                        ${(data.prob_benign * 100).toFixed(1)}%
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>Probabilité Maligne</span>
+                                    <span><strong>${(data.prob_malignant * 100).toFixed(2)}%</strong></span>
+                                </div>
+                                <div class="probability-bar">
+                                    <div class="probability-fill" style="width: ${data.prob_malignant * 100}%;">
+                                        ${(data.prob_malignant * 100).toFixed(1)}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${data.true_label ? `
+                            <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px; margin-top: 20px;">
+                                <strong>Vraie Valeur:</strong> ${data.true_label}
+                                ${data.correct ? 
+                                    '<span style="margin-left: 10px;">✅ Prédiction Correcte</span>' : 
+                                    '<span style="margin-left: 10px;">❌ Prédiction Incorrecte</span>'
+                                }
+                            </div>
+                        ` : ''}
+                        
+                        <p style="margin-top: 20px; font-size: 0.95em; opacity: 0.9;">
+                            ${isMalignant ? 
+                                '⚠️ Recommandation: Consultation médicale immédiate requise' : 
+                                '✓ Recommandation: Suivi médical régulier conseillé'
+                            }
+                        </p>
+                    </div>
+                `;
+                
+                result.innerHTML = html;
+                result.style.display = 'block';
+                
+            } catch (err) {
+                error.textContent = `❌ Erreur: ${err.message}`;
+                error.style.display = 'block';
+            } finally {
+                loading.classList.remove('show');
+            }
+        });
+    }
+</script>
+{% endblock %}

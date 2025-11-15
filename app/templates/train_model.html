@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Entraîner un Modèle{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>🚀 Entraîner un Modèle</h2>
+    <p style="color: #6c757d; margin-bottom: 30px;">
+        Sélectionnez un modèle et configurez ses paramètres pour l'entraînement.
+    </p>
+    
+    <form id="trainForm">
+        <div class="form-group">
+            <label for="model_type">Type de Modèle *</label>
+            <select id="model_type" name="model_type" required>
+                <option value="">-- Sélectionner un modèle --</option>
+                {% for key, model in models.items() %}
+                <option value="{{ key }}">{{ model.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div id="params-section" style="display: none;">
+            <h3 style="color: #667eea; margin: 20px 0 15px;">⚙️ Paramètres du Modèle</h3>
+            
+            <!-- Paramètres Régression Logistique -->
+            <div id="params-logistic" style="display: none;">
+                <div class="form-group">
+                    <label for="max_iter">Nombre d'itérations (max_iter)</label>
+                    <input type="number" id="max_iter" name="max_iter" placeholder="5000" value="5000">
+                    <small style="color: #6c757d;">Nombre maximum d'itérations pour la convergence</small>
+                </div>
+            </div>
+            
+            <!-- Paramètres Réseau de Neurones -->
+            <div id="params-neural" style="display: none;">
+                <div class="form-group">
+                    <label for="hidden_size">Taille de la couche cachée (hidden_size)</label>
+                    <input type="number" id="hidden_size" name="hidden_size" placeholder="16" value="16">
+                    <small style="color: #6c757d;">Nombre de neurones dans la couche cachée</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="epochs">Nombre d'époques (epochs)</label>
+                    <input type="number" id="epochs" name="epochs" placeholder="1000" value="1000">
+                    <small style="color: #6c757d;">Nombre d'itérations d'entraînement</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="learning_rate">Taux d'apprentissage (learning_rate)</label>
+                    <input type="number" id="learning_rate" name="learning_rate" step="0.001" placeholder="0.01" value="0.01">
+                    <small style="color: #6c757d;">Taux d'apprentissage pour la descente de gradient</small>
+                </div>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn" style="margin-top: 20px;">
+            🚀 Lancer l'Entraînement
+        </button>
+    </form>
+    
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px; color: #667eea; font-weight: 500;">Entraînement en cours...</p>
+    </div>
+    
+    <div id="result" style="display: none; margin-top: 30px;">
+        <div class="alert alert-success">
+            <h3 style="margin-bottom: 10px;">✅ Modèle Entraîné avec Succès!</h3>
+            <p id="result-model-name" style="font-size: 1.1em;"></p>
+        </div>
+        
+        <h3 style="color: #667eea; margin: 20px 0;">📈 Métriques de Performance</h3>
+        <div class="metrics-grid" id="metrics-grid"></div>
+        
+        <div style="margin-top: 30px;">
+            <a href="/predict" class="btn btn-success">🔮 Faire une Prédiction</a>
+            <a href="/evaluate" class="btn">📊 Évaluation Détaillée</a>
+        </div>
+    </div>
+    
+    <div id="error" style="display: none;" class="alert alert-error"></div>
+</div>
+
+<script>
+    const modelSelect = document.getElementById('model_type');
+    const paramsSection = document.getElementById('params-section');
+    const paramsLogistic = document.getElementById('params-logistic');
+    const paramsNeural = document.getElementById('params-neural');
+    const trainForm = document.getElementById('trainForm');
+    const loading = document.getElementById('loading');
+    const result = document.getElementById('result');
+    const error = document.getElementById('error');
+    
+    modelSelect.addEventListener('change', function() {
+        const modelType = this.value;
+        
+        if (modelType) {
+            paramsSection.style.display = 'block';
+            
+            if (modelType === 'logistic_regression') {
+                paramsLogistic.style.display = 'block';
+                paramsNeural.style.display = 'none';
+            } else if (modelType === 'neural_network') {
+                paramsLogistic.style.display = 'none';
+                paramsNeural.style.display = 'block';
+            }
+        } else {
+            paramsSection.style.display = 'none';
+        }
+    });
+    
+    trainForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        loading.classList.add('show');
+        result.style.display = 'none';
+        error.style.display = 'none';
+        
+        const formData = new FormData(trainForm);
+        
+        try {
+            const response = await fetch('/train_model', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            // Afficher les résultats
+            document.getElementById('result-model-name').textContent = 
+                `Modèle: ${data.model_name}`;
+            
+            const metricsGrid = document.getElementById('metrics-grid');
+            metricsGrid.innerHTML = `
+                <div class="metric-card">
+                    <h3>Accuracy</h3>
+                    <div class="value">${(data.metrics.accuracy * 100).toFixed(2)}%</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Precision</h3>
+                    <div class="value">${(data.metrics.precision * 100).toFixed(2)}%</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Recall</h3>
+                    <div class="value">${(data.metrics.recall * 100).toFixed(2)}%</div>
+                </div>
+                <div class="metric-card">
+                    <h3>F1-Score</h3>
+                    <div class="value">${(data.metrics.f1_score * 100).toFixed(2)}%</div>
+                </div>
+            `;
+            
+            result.style.display = 'block';
+            
+        } catch (err) {
+            error.textContent = `❌ Erreur: ${err.message}`;
+            error.style.display = 'block';
+        } finally {
+            loading.classList.remove('show');
+        }
+    });
+</script>
+{% endblock %}

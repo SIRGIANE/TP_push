@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Évaluation du Modèle{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>📊 Évaluation du Modèle</h2>
+    
+    {% if not model_loaded %}
+    <div class="alert alert-error">
+        <strong>⚠️ Aucun modèle chargé!</strong>
+        <p>Veuillez d'abord <a href="/train_model" style="color: #721c24; text-decoration: underline;">entraîner un modèle</a>.</p>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <strong>✓ Modèle actuel:</strong> {{ model_name }}
+    </div>
+    
+    <h3 style="color: #667eea; margin: 20px 0;">📈 Métriques de Classification</h3>
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <h3>Accuracy</h3>
+            <div class="value">{{ (metrics.accuracy * 100)|round(2) }}%</div>
+        </div>
+        <div class="metric-card">
+            <h3>Precision</h3>
+            <div class="value">{{ (metrics.precision * 100)|round(2) }}%</div>
+        </div>
+        <div class="metric-card">
+            <h3>Recall</h3>
+            <div class="value">{{ (metrics.recall * 100)|round(2) }}%</div>
+        </div>
+        <div class="metric-card">
+            <h3>F1-Score</h3>
+            <div class="value">{{ (metrics.f1_score * 100)|round(2) }}%</div>
+        </div>
+    </div>
+    
+    <h3 style="color: #667eea; margin: 30px 0 20px;">📉 Fonctions de Perte</h3>
+    <div class="metrics-grid">
+        <div class="metric-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+            <h3>Log Loss (Train)</h3>
+            <div class="value">{{ losses.train.log_loss|round(4) }}</div>
+        </div>
+        <div class="metric-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+            <h3>Log Loss (Test)</h3>
+            <div class="value">{{ losses.test.log_loss|round(4) }}</div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+        <h4 style="color: #495057; margin-bottom: 15px;">📖 Interprétation des Métriques</h4>
+        <ul style="color: #6c757d; line-height: 1.8;">
+            <li><strong>Accuracy:</strong> Pourcentage de prédictions correctes</li>
+            <li><strong>Precision:</strong> Parmi les prédictions positives, combien sont correctes</li>
+            <li><strong>Recall:</strong> Parmi les vrais positifs, combien ont été détectés</li>
+            <li><strong>F1-Score:</strong> Moyenne harmonique de Precision et Recall</li>
+            <li><strong>Log Loss:</strong> Mesure la qualité des probabilités prédites (plus bas = meilleur)</li>
+        </ul>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <a href="/predict" class="btn btn-success">🔮 Faire une Prédiction</a>
+        <a href="/compare_models" class="btn">⚖️ Comparer avec d'autres Modèles</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+# Système de Prédiction de Cancer du Sein
+
+## Description
+Ce projet implémente un système de prédiction de cancer du sein utilisant différents modèles d'apprentissage automatique.
+
+## Concept POO: Polymorphisme
+Le système démontre le **polymorphisme** - un concept clé de la POO. Tous les modèles (Régression Logistique, Réseau de Neurones) implémentent une méthode `predict()` commune, permettant de les utiliser de manière interchangeable.
+
+## Installation
+```bash
+pip install numpy scikit-learn pandas
+```
+
+## Utilisation
+
+### 1. Interface Interactive Complète (NOUVEAU!)
+Pour choisir et comparer différents modèles:
+```bash
+python app/interactive_interface.py
+```
+
+Fonctionnalités:
+- ✅ Sélectionner entre Régression Logistique et Réseau de Neurones
+- ✅ Entraîner des modèles avec paramètres personnalisés
+- ✅ Faire des prédictions
+- ✅ Évaluer les performances
+- ✅ Comparer tous les modèles disponibles
+- ✅ Sauvegarder/Charger des modèles
+
+### 2. Entraînement Simple
+```bash
+python main.py
+```
+
+### 3. Interface Clinique
+```bash
+python app/interfaceclinique.py
+```
+
+## Structure du Projet
+```
+├── app/
+│   ├── interactive_interface.py  # Interface de sélection de modèles
+│   ├── interfaceclinique.py      # Interface clinique
+│   └── api.py                    # API de prédiction
+├── core/
+│   ├── logisticregression.py     # Modèle de régression logistique
+│   ├── neural_network.py         # Réseau de neurones
+│   ├── dataset.py                # Gestion des données
+│   └── loss.py                   # Calcul des pertes
+├── pipline/
+│   ├── trainer.py                # Entraînement des modèles
+│   └── evaluator.py              # Évaluation
+└── utils/
+    ├── metrics.py                # Métriques de performance
+    └── preprocessing.py          # Prétraitement
+```
+
+## Modèles Disponibles
+
+### 1. Régression Logistique
+- Type: Modèle linéaire
+- Rapide et interprétable
+- Paramètre: max_iter
+
+### 2. Réseau de Neurones
+- Type: Modèle non-linéaire
+- Architecture: 1 couche cachée
+- Paramètres: hidden_size, epochs, learning_rate
+
+## Exemple d'Utilisation Programmatique
+
+### Avec Régression Logistique:
+```python
+from pipline.trainer import Trainer
+from core.logisticregression import LogisticRegressionModel
+
+trainer = Trainer(model_class=LogisticRegressionModel)
+model, X_test, y_test = trainer.run_training()
+```
+
+### Avec Réseau de Neurones:
+```python
+from pipline.trainer import Trainer
+from core.neural_network import NeuralNetwork
+
+trainer = Trainer(
+    model_class=NeuralNetwork, 
+    model_params={'hidden_size': 32, 'epochs': 2000}
+)
+model, X_test, y_test = trainer.run_training()
+```
+
+## Auteur
+Projet de démonstration POO - Génie Logiciel

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Comparaison des Modèles{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>⚖️ Comparaison des Modèles</h2>
+    <p style="color: #6c757d; margin-bottom: 20px;">
+        Entraînez et comparez automatiquement tous les modèles disponibles.
+    </p>
+    
+    <button id="compareBtn" class="btn">🚀 Lancer la Comparaison</button>
+    
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px; color: #667eea; font-weight: 500;">Entraînement des modèles en cours...</p>
+        <p style="color: #6c757d; margin-top: 10px;">Cela peut prendre quelques instants...</p>
+    </div>
+    
+    <div id="results" style="display: none; margin-top: 30px;">
+        <h3 style="color: #667eea; margin-bottom: 20px;">📊 Résultats de la Comparaison</h3>
+        
+        <div id="comparison-table"></div>
+        
+        <div id="winner" style="margin-top: 30px;"></div>
+        
+        <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+            <h4 style="color: #495057; margin-bottom: 15px;">🎯 Concept POO: Polymorphisme</h4>
+            <p style="color: #6c757d; line-height: 1.6;">
+                Cette comparaison démontre le <strong>polymorphisme</strong>: tous les modèles partagent 
+                la même interface (méthode <code>predict()</code>), permettant de les évaluer de manière 
+                uniforme sans connaître leur implémentation spécifique.
+            </p>
+        </div>
+    </div>
+    
+    <div id="error" style="display: none;" class="alert alert-error"></div>
+</div>
+
+<script>
+    const compareBtn = document.getElementById('compareBtn');
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
+    const error = document.getElementById('error');
+    
+    compareBtn.addEventListener('click', async function() {
+        loading.classList.add('show');
+        results.style.display = 'none';
+        error.style.display = 'none';
+        compareBtn.disabled = true;
+        
+        try {
+            const response = await fetch('/compare_models', {
+                method: 'POST'
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            // Créer le tableau de comparaison
+            let tableHtml = `
+                <table style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden;">
+                    <thead>
+                        <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            <th style="padding: 15px; text-align: left;">Modèle</th>
+                            <th style="padding: 15px; text-align: center;">Accuracy</th>
+                            <th style="padding: 15px; text-align: center;">Precision</th>
+                            <th style="padding: 15px; text-align: center;">Recall</th>
+                            <th style="padding: 15px; text-align: center;">F1-Score</th>
+                            <th style="padding: 15px; text-align: center;">Log Loss</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            let bestModel = null;
+            let bestF1 = 0;
+            
+            for (const [key, model] of Object.entries(data.results)) {
+                tableHtml += `
+                    <tr style="border-bottom: 1px solid #e9ecef;">
+                        <td style="padding: 15px; font-weight: 500;">${model.name}</td>
+                        <td style="padding: 15px; text-align: center;">${(model.accuracy * 100).toFixed(2)}%</td>
+                        <td style="padding: 15px; text-align: center;">${(model.precision * 100).toFixed(2)}%</td>
+                        <td style="padding: 15px; text-align: center;">${(model.recall * 100).toFixed(2)}%</td>
+                        <td style="padding: 15px; text-align: center;">${(model.f1_score * 100).toFixed(2)}%</td>
+                        <td style="padding: 15px; text-align: center;">${model.log_loss.toFixed(4)}</td>
+                    </tr>
+                `;
+                
+                if (model.f1_score > bestF1) {
+                    bestF1 = model.f1_score;
+                    bestModel = model;
+                }
+            }
+            
+            tableHtml += '</tbody></table>';
+            
+            document.getElementById('comparison-table').innerHTML = tableHtml;
+            
+            // Afficher le gagnant
+            if (bestModel) {
+                document.getElementById('winner').innerHTML = `
+                    <div style="padding: 30px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border-radius: 10px; text-align: center;">
+                        <h3 style="color: white; margin-bottom: 10px;">🏆 Meilleur Modèle</h3>
+                        <h2 style="color: white; font-size: 2em; margin: 10px 0;">${bestModel.name}</h2>
+                        <p style="font-size: 1.2em;">F1-Score: ${(bestModel.f1_score * 100).toFixed(2)}%</p>
+                    </div>
+                `;
+            }
+            
+            results.style.display = 'block';
+            
+        } catch (err) {
+            error.textContent = `❌ Erreur: ${err.message}`;
+            error.style.display = 'block';
+        } finally {
+            loading.classList.remove('show');
+            compareBtn.disabled = false;
+        }
+    });
+</script>
+{% endblock %}
