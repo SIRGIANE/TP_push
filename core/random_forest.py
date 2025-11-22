@@ -3,7 +3,7 @@ from sklearn.ensemble import RandomForestClassifier
 import joblib
 from .model import Model
 
-
+#SIRGIANE OUIÇAL
 class RandomForestModel(Model):
     """Wrapper pour RandomForestClassifier (classification binaire)"""
     def __init__(self, n_estimators=100, max_depth=None, random_state=42, **kwargs):
